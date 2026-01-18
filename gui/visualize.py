@@ -5,70 +5,91 @@ class TrafficVisualizer:
         self.intersection = intersection
         self.root = tk.Tk()
         self.root.title("Intelligent Traffic Signal Simulator")
+        self.root.geometry("500x350")
+        self.root.configure(bg="white")
 
-        self.lights = {}
-        self.labels = {}
-
+        self.rows = {}
         self._build_ui()
 
     def _build_ui(self):
-        self.root.geometry("500x500")
-
         title = tk.Label(
             self.root,
             text="Intelligent Traffic Signal Simulator",
-            font=("Arial", 14, "bold")
+            font=("Arial", 16, "bold"),
+            bg="white"
         )
-        title.pack(pady=10)
+        title.pack(pady=5)
 
-        canvas = tk.Canvas(self.root, width=400, height=400, bg="lightgrey")
-        canvas.pack()
+        subtitle = tk.Label(
+            self.root,
+            text="Priority Queue Based Scheduling (Single Intersection)",
+            font=("Arial", 10),
+            bg="white"
+        )
+        subtitle.pack(pady=5)
 
-        # Draw intersection box
-        canvas.create_rectangle(170, 170, 230, 230, fill="darkgrey")
+        table = tk.Frame(self.root, bg="white")
+        table.pack(pady=15)
 
-        positions = {
-            "A": (80, 190),   # Left
-            "B": (190, 80),   # Top
-            "C": (300, 190),  # Right
-            "D": (190, 300)   # Bottom
-        }
+        headers = ["Road", "Signal", "Vehicles"]
+        for i, h in enumerate(headers):
+            tk.Label(
+                table,
+                text=h,
+                font=("Arial", 11, "bold"),
+                width=12,
+                bg="white"
+            ).grid(row=0, column=i, padx=5, pady=5)
 
-        for road_id, (x, y) in positions.items():
-            light = tk.Label(
-                self.root,
-                text="🔴",
-                font=("Arial", 24)
+        for idx, road_id in enumerate(self.intersection.roads.keys(), start=1):
+            tk.Label(
+                table,
+                text=f"Road {road_id}",
+                font=("Arial", 11),
+                width=12,
+                bg="white"
+            ).grid(row=idx, column=0, padx=5)
+
+            signal = tk.Label(
+                table,
+                text="RED",
+                fg="white",
+                bg="red",
+                width=12,
+                font=("Arial", 10, "bold")
             )
-            light.place(x=x, y=y)
+            signal.grid(row=idx, column=1, padx=5)
 
-            label = tk.Label(
-                self.root,
-                text=f"Road {road_id}: 0",
-                font=("Arial", 10)
+            count = tk.Label(
+                table,
+                text="0",
+                font=("Arial", 11),
+                width=12,
+                bg="white"
             )
-            label.place(x=x - 20, y=y + 40)
+            count.grid(row=idx, column=2, padx=5)
 
-            self.lights[road_id] = light
-            self.labels[road_id] = label
+            self.rows[road_id] = (signal, count)
 
         self.status = tk.Label(
             self.root,
-            text="Current Green: None",
-            font=("Arial", 12, "bold")
+            text="Current Green Signal: None",
+            font=("Arial", 12, "bold"),
+            fg="green",
+            bg="white"
         )
         self.status.pack(pady=10)
 
     def update(self, green_road_id):
         for road_id, road in self.intersection.roads.items():
+            signal, count = self.rows[road_id]
+
             if road_id == green_road_id:
-                self.lights[road_id].config(text="🟢")
+                signal.config(text="GREEN", bg="green")
             else:
-                self.lights[road_id].config(text="🔴")
+                signal.config(text="RED", bg="red")
 
-            self.labels[road_id].config(
-                text=f"Road {road_id}: {road.vehicle_count()}"
-            )
+            count.config(text=str(road.vehicle_count()))
 
-        self.status.config(text=f"Current Green: Road {green_road_id}")
+        self.status.config(text=f"Current Green Signal: Road {green_road_id}")
         self.root.update()
