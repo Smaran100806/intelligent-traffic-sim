@@ -7,7 +7,7 @@ class SignalScheduler:
 
         for road in roads:
             priority = calculate_priority(road)
-            heapq.heappush(heap, (-priority, road))
+            heapq.heappush(heap, (-priority, road.road_id, road))
 
-        _, selected_road = heapq.heappop(heap)
+        _, _, selected_road = heapq.heappop(heap)
         return selected_road
