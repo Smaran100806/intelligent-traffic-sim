@@ -1,6 +1,6 @@
 from scheduler.signal_scheduler import SignalScheduler
-from config import BASE_GREEN_TIME
-
+# Update Import: Include MAX_GREEN_TIME from config
+from config import BASE_GREEN_TIME, MAX_GREEN_TIME 
 
 class SignalController:
     def __init__(self, intersection):
@@ -17,8 +17,21 @@ class SignalController:
             self.intersection.get_roads()
         )
 
-        # 2. Green signal duration (time-based)
-        green_duration = BASE_GREEN_TIME  # seconds
+        # --- MODIFIED SECTION START ---
+        
+        # 2. Calculate dynamic Green signal duration
+        # Time needed = Number of cars / Discharge rate (cars per second)
+        if self.cars_per_second > 0:
+            needed_time = selected_road.vehicle_count() / self.cars_per_second
+        else:
+            needed_time = BASE_GREEN_TIME
+
+        # Clamp the duration: 
+        # It shouldn't be less than BASE_GREEN_TIME (to avoid flickering)
+        # It shouldn't be more than MAX_GREEN_TIME (to prevent starvation)
+        green_duration = max(BASE_GREEN_TIME, min(needed_time, MAX_GREEN_TIME))
+        
+        # --- MODIFIED SECTION END ---
 
         # 3. Compute throughput
         max_passable = int(green_duration * self.cars_per_second)
